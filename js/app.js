@@ -15,6 +15,19 @@ class CalorieTracker{
     }
     
     // Public Methods 
+    setLimit(limit){
+        this._calorieLimit = limit;
+        this._displayCalorieLimit();
+        this._renderStats();
+    }
+
+    reset(){
+        this._totalCalories = 0;
+        this._meals = [];
+        this._workouts = [];
+        this._renderStats();
+    }
+
     addMeal(meal){
         this._meals.push(meal);
         this._totalCalories += meal.calories;
@@ -173,8 +186,46 @@ class App{
         document.getElementById('workout-form').addEventListener('submit', this._newItem.bind(this, 'workout'));
         document.getElementById('meal-items').addEventListener('click', this._removeItem.bind(this, 'meal'));
         document.getElementById('workout-items').addEventListener('click', this._removeItem.bind(this, 'workout'));
+        document.getElementById('filter-meals').addEventListener('input', this._filterItems.bind(this, 'meal'));
+        document.getElementById('filter-workouts').addEventListener('input', this._filterItems.bind(this, 'workout'));
+        document.getElementById('reset').addEventListener('click', this._reset.bind(this));
+        document.getElementById('limit-form').addEventListener('submit', this._setLimit.bind(this));
     }
     
+    _setLimit(e){
+        e.preventDefault();
+        let limit  = document.getElementById('limit').value;
+        if (limit === '' || 'abcdefghijklmnopqrstuvwxyz'.includes(limit)){
+            alert('Please enter a valid value');
+            return;
+        }
+        this._tracker.setLimit(+limit);
+        limit = '';
+
+        const modalEl = document.getElementById('limit-modal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+    }
+
+    _reset(){
+        this._tracker.reset();
+        document.getElementById('meal-items').innerHTML = '';
+        document.getElementById('workout-items').innerHTML = '';
+        document.getElementById('filter-meals').value = '';
+        document.getElementById('filter-workouts').value = '';
+    }
+
+    _filterItems(type,e){
+        const items = document.getElementById(`${type}-items`).children;
+        Array.from(items).forEach(item => {
+            if (item.textContent.toLowerCase().includes(e.target.value.toLowerCase())){
+                item.style.display = 'flex';
+            }else{
+                item.style.display = 'none';
+            }
+        })
+    }
+
     _removeItem(type,e){
         if (e.target.classList.contains('delete') || e.target.classList.contains('fa-xmark')){
             if (confirm('Are you sure?')){
