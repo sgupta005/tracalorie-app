@@ -29,6 +29,26 @@ class CalorieTracker{
         this._renderStats();
     }
 
+    removeMeal(id){
+        const [mealToBeRemoved] = this._meals.filter(meal=>meal.id === +id);
+        this._totalCalories-=mealToBeRemoved.calories;
+
+        //Removing the meal from meal array 
+        this._meals = this._meals.filter(meal=> meal.id !== +id);
+
+        this._renderStats();
+    }
+
+    removeWorkout(id){
+        const [workoutToBeRemoved] = this._workouts.filter(workout=>workout.id === +id);
+        this._totalCalories+=workoutToBeRemoved.calories;
+
+        //Removing the workout from workout array 
+        this._workouts = this._workouts.filter(workout=> workout.id !== +id);
+
+        this._renderStats();
+    }
+
     // Private Methods
     _displayCaloriesTotal(){
         document.getElementById('calories-total').textContent = this._totalCalories;
@@ -76,55 +96,49 @@ class CalorieTracker{
 
     _displayMeal(meal){
         const meals = document.getElementById('meal-items');
-        console.log(meals);
         const div = document.createElement('div');
+        div.setAttribute('data-id', meal.id);
         div.className = 'card my-2';
         div.innerHTML = `
             <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between">
-                <h4 class="mx-1">${meal.name}</h4>
-                <div
-                    class="fs-1 bg-primary text-white text-center rounded-2 px-2 px-sm-5"
-                >
-                    ${meal.calories}
+                <div class="d-flex align-items-center justify-content-between">
+                    <h4 class="mx-1">${meal.name}</h4>
+                    <div
+                        class="fs-1 bg-primary text-white text-center rounded-2 px-2 px-sm-5"
+                    >
+                        ${meal.calories}
+                    </div>
+                    <button class="delete btn btn-danger btn-sm mx-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
-                <button class="delete btn btn-danger btn-sm mx-2">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
             </div>
         `
-        console.log(div);
         meals.appendChild(div);
     }
 
     _displayWorkout(workout){
         const workouts = document.getElementById('workout-items');
-        console.log(workouts);
         const div = document.createElement('div');
+        div.setAttribute('data-id', workout.id);
         div.className = 'card my-2';
         div.innerHTML = `
-            <div class="card my-2">
             <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between">
-                <h4 class="mx-1">${workout.name}</h4>
-                <div
-                class="fs-1 bg-secondary text-white text-center rounded-2 px-2 px-sm-5"
-                >
-                ${workout.calories}
+                <div class="d-flex align-items-center justify-content-between">
+                    <h4 class="mx-1">${workout.name}</h4>
+                    <div
+                    class="fs-1 bg-secondary text-white text-center rounded-2 px-2 px-sm-5"
+                    >
+                        ${workout.calories}
+                    </div>
+                    <button class="delete btn btn-danger btn-sm mx-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
-                <button class="delete btn btn-danger btn-sm mx-2">
-                <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            </div>
             </div>
         `
-        console.log(div);
         workouts.appendChild(div);
     }
-
-    
 
     _renderStats(){
         this._displayCaloriesTotal();
@@ -151,16 +165,30 @@ class Workout{
     }
 }
 
-
 class App{
     constructor(){
         this._tracker = new CalorieTracker();
 
         document.getElementById('meal-form').addEventListener('submit', this._newItem.bind(this, 'meal'));
         document.getElementById('workout-form').addEventListener('submit', this._newItem.bind(this, 'workout'));
-        
+        document.getElementById('meal-items').addEventListener('click', this._removeItem.bind(this, 'meal'));
+        document.getElementById('workout-items').addEventListener('click', this._removeItem.bind(this, 'workout'));
     }
     
+    _removeItem(type,e){
+        if (e.target.classList.contains('delete') || e.target.classList.contains('fa-xmark')){
+            if (confirm('Are you sure?')){
+                const id = e.target.closest('.card').getAttribute('data-id');
+                if (type==='meal'){
+                    this._tracker.removeMeal(id);
+                }else{
+                    this._tracker.removeWorkout(id);
+                }
+                e.target.closest('.card').remove();
+            }
+        }
+    }
+
     _newItem(type,e){
         e.preventDefault();
         const name = document.getElementById(`${type}-name`);
